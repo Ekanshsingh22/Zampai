@@ -1,0 +1,6 @@
+
+flask
+pdfplumber
+reportlab
+pillow
+gunicorn

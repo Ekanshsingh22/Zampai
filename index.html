@@ -1,0 +1,38 @@
+<!doctype html><meta charset=utf-8><title>Invoice AP Processor</title>
+<style>
+:root{--b:#2547f5;--bg:#f6f7fb;--t:#16181d}*{box-sizing:border-box}body{margin:0;font:14px system-ui;background:var(--bg);color:var(--t)}
+header{background:#fff;padding:14px 28px;border-bottom:1px solid #e3e5ec;display:flex;gap:24px;align-items:center}h1{font-size:17px;margin:0}
+nav button{border:0;background:none;padding:8px 14px;font:inherit;cursor:pointer;border-radius:8px}nav button.on{background:#e8ecff;color:var(--b);font-weight:600}
+main{max-width:1050px;margin:20px auto;padding:0 20px}.card{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px #0001}
+.btn{background:var(--b);color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}.btn.g{background:#eef0f6;color:var(--t)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.st{display:flex;gap:12px;padding:9px 12px;border-left:4px solid #ccc;background:#fafbfd;margin:6px 0;border-radius:6px;animation:f .3s}
+.st b{min-width:150px}.ok{border-color:#16a34a}.warn{border-color:#d97706}.fail{border-color:#dc2626}@keyframes f{from{opacity:0;transform:translateY(4px)}}
+.bd{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:700;font-size:12px}.APPROVED{background:#dcfce7;color:#166534}.REVIEW{background:#fef3c7;color:#92400e}.HOLD{background:#e0e7ff;color:#3730a3}.REJECTED{background:#fee2e2;color:#991b1b}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid #eceef4}tr.r{cursor:pointer}tr.r:hover{background:#f4f6ff}
+.k{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}.k div{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 3px #0001}.k b{font-size:24px;display:block}
+.bar{height:8px;background:#e5e7ef;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--b)}#res{font-size:15px}
+</style>
+<header><h1>🧾 Invoice AP Processor</h1><nav><button id=n1 class=on onclick=tab(1)>Process</button><button id=n2 onclick=tab(2)>Dashboard</button></nav></header>
+<main>
+<section id=p1><div class=card><b>Upload an invoice PDF</b><div class=row style=margin-top:10px><input type=file id=f accept=.pdf><button class=btn onclick=runFile()>Run</button></div>
+<p style=margin:14px 0 6px;color:#666>…or run a prepared test invoice:</p><div class=row id=sm></div></div>
+<div class=card><b>Live run</b><div id=stages style=margin-top:8px><span style=color:#888>Waiting for an invoice…</span></div><div id=res style=margin-top:12px></div></div></section>
+<section id=p2 hidden><div class=k id=k></div><div class=card><b>PO utilisation</b><div id=po style=margin-top:8px></div></div>
+<div class=card><div class=row style=justify-content:space-between><b>Run history</b><button class="btn g" onclick=reset()>Reset demo data</button></div><table id=t></table></div></section></main>
+<script>
+const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const st=s=>`<div class="st ${s.status}"><b>${E(s.stage)}</b><span>${E(s.detail)}</span></div>`;
+function tab(n){[1,2].forEach(i=>{$('#p'+i).hidden=i!=n;$('#n'+i).className=i==n?'on':''});if(n==2)dash()}
+fetch('/samples').then(r=>r.json()).then(l=>$('#sm').innerHTML=l.map(x=>`<button class="btn g" onclick="runS('${x}')">${x.replace('.pdf','')}</button>`).join(''));
+function runS(x){const fd=new FormData();fd.append('sample',x);go(fd)}
+function runFile(){const f=$('#f').files[0];if(!f)return alert('Choose a PDF');const fd=new FormData();fd.append('file',f);go(fd)}
+async function go(fd){$('#stages').innerHTML='';$('#res').innerHTML='<i>Running…</i>';
+const r=await fetch('/run',{method:'POST',body:fd}),rd=r.body.getReader(),dc=new TextDecoder();let b='';
+while(1){const{done,value}=await rd.read();if(done)break;b+=dc.decode(value,{stream:true});let i;while((i=b.indexOf('\n'))>=0){const l=b.slice(0,i);b=b.slice(i+1);if(!l)continue;const j=JSON.parse(l);
+if(j.done)$('#res').innerHTML=`<span class="bd ${j.decision}">${j.decision}</span> ${E(j.reason)}`;else $('#stages').insertAdjacentHTML('beforeend',st(j))}}}
+async function dash(){const R=await (await fetch('/api/runs')).json(),P=await (await fetch('/api/pos')).json(),c=d=>R.filter(r=>r.decision==d).length;
+$('#k').innerHTML=`<div><b>${R.length}</b>Total</div>`+['APPROVED','REVIEW','HOLD','REJECTED'].map(d=>`<div><b>${c(d)}</b><span class="bd ${d}">${d}</span></div>`).join('');
+$('#po').innerHTML=P.map(p=>`<div style=margin:8px 0>${p.po} · ${E(p.vendor)} — ${(+p.billed).toLocaleString()} / ${(+p.amount).toLocaleString()}<div class=bar><i style="width:${Math.min(100,p.billed/p.amount*100)}%"></i></div></div>`).join('');
+$('#t').innerHTML='<tr><th>#<th>Time<th>File<th>Vendor<th>Invoice<th>Total<th>PO<th>Decision</tr>'+R.map(r=>`<tr class=r onclick="this.nextElementSibling.hidden^=1"><td>${r.id}<td>${r.ts}<td>${E(r.file)}<td>${E(r.vendor)}<td>${E(r.inv_no)}<td>${r.total??''}<td>${E(r.po)}<td><span class="bd ${r.decision}">${r.decision}</span></tr><tr hidden><td colspan=8><i>${E(r.reason)}</i>${JSON.parse(r.stages).map(st).join('')}</tr>`).join('')}
+async function reset(){await fetch('/api/reset',{method:'POST'});dash()}
+</script>
