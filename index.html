@@ -1,38 +1,1328 @@
-<!doctype html><meta charset=utf-8><title>Invoice AP Processor</title>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceFlow | AP Automation</title>
+
 <style>
-:root{--b:#2547f5;--bg:#f6f7fb;--t:#16181d}*{box-sizing:border-box}body{margin:0;font:14px system-ui;background:var(--bg);color:var(--t)}
-header{background:#fff;padding:14px 28px;border-bottom:1px solid #e3e5ec;display:flex;gap:24px;align-items:center}h1{font-size:17px;margin:0}
-nav button{border:0;background:none;padding:8px 14px;font:inherit;cursor:pointer;border-radius:8px}nav button.on{background:#e8ecff;color:var(--b);font-weight:600}
-main{max-width:1050px;margin:20px auto;padding:0 20px}.card{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px #0001}
-.btn{background:var(--b);color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}.btn.g{background:#eef0f6;color:var(--t)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.st{display:flex;gap:12px;padding:9px 12px;border-left:4px solid #ccc;background:#fafbfd;margin:6px 0;border-radius:6px;animation:f .3s}
-.st b{min-width:150px}.ok{border-color:#16a34a}.warn{border-color:#d97706}.fail{border-color:#dc2626}@keyframes f{from{opacity:0;transform:translateY(4px)}}
-.bd{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:700;font-size:12px}.APPROVED{background:#dcfce7;color:#166534}.REVIEW{background:#fef3c7;color:#92400e}.HOLD{background:#e0e7ff;color:#3730a3}.REJECTED{background:#fee2e2;color:#991b1b}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid #eceef4}tr.r{cursor:pointer}tr.r:hover{background:#f4f6ff}
-.k{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}.k div{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 3px #0001}.k b{font-size:24px;display:block}
-.bar{height:8px;background:#e5e7ef;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--b)}#res{font-size:15px}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --navy:#101b35;
+  --navy2:#172746;
+  --blue:#4169e1;
+  --blue-light:#edf2ff;
+  --bg:#f5f7fb;
+  --text:#19243b;
+  --muted:#7b879d;
+  --border:#e8edf5;
+  --white:#fff;
+  --green:#15966a;
+  --red:#d94d5c;
+  --amber:#c58a22;
+  --shadow:0 8px 28px rgba(26,43,75,.055);
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  font-family:'DM Sans',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+button,input { font:inherit; }
+button { cursor:pointer; }
+
+.app {
+  min-height:100vh;
+  display:flex;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width:250px;
+  background:var(--navy);
+  color:white;
+  padding:28px 18px;
+  display:flex;
+  flex-direction:column;
+  flex-shrink:0;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 10px 34px;
+}
+
+.brand-icon {
+  width:42px;
+  height:42px;
+  background:#4169e1;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  font-size:22px;
+}
+
+.brand-name {
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:-.5px;
+}
+
+.brand-sub {
+  color:#9eacc8;
+  font-size:11px;
+  margin-top:3px;
+}
+
+.nav-label {
+  color:#8090b0;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  padding:12px 12px;
+}
+
+.nav-btn {
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:13px 14px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#bdc8dc;
+  text-align:left;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:6px;
+  transition:.2s;
+}
+
+.nav-btn:hover { background:#ffffff12; color:white; }
+
+.nav-btn.active {
+  background:#4169e1;
+  color:white;
+  box-shadow:0 5px 15px #4169e144;
+}
+
+.nav-icon {
+  font-size:17px;
+  width:21px;
+  text-align:center;
+}
+
+.sidebar-bottom {
+  margin-top:auto;
+  border-top:1px solid #ffffff18;
+  padding:20px 10px 0;
+  color:#9eacc8;
+  font-size:11px;
+  line-height:1.7;
+}
+
+.system-status {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#c4d3e8;
+  margin-bottom:8px;
+}
+
+.dot {
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#35cb91;
+  box-shadow:0 0 10px #35cb91;
+}
+
+/* MAIN */
+
+.main {
+  flex:1;
+  min-width:0;
+}
+
+.topbar {
+  height:76px;
+  background:white;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 38px;
+}
+
+.top-title {
+  font-size:16px;
+  font-weight:700;
+}
+
+.top-right {
+  display:flex;
+  align-items:center;
+  gap:18px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.avatar {
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#e8edff;
+  color:#4169e1;
+  font-weight:800;
+}
+
+.content {
+  max-width:1450px;
+  margin:auto;
+  padding:34px 38px 50px;
+}
+
+.page { display:none; }
+.page.active { display:block; }
+
+.page-heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:15px;
+  margin-bottom:27px;
+}
+
+.page-heading h1 {
+  font-size:25px;
+  margin:0 0 7px;
+  letter-spacing:-.7px;
+}
+
+.page-heading p {
+  color:var(--muted);
+  margin:0;
+  font-size:13px;
+}
+
+.eyebrow {
+  color:var(--blue);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.4px;
+  margin-bottom:9px;
+}
+
+/* BUTTONS */
+
+.btn {
+  border:0;
+  border-radius:9px;
+  padding:11px 17px;
+  background:var(--blue);
+  color:white;
+  font-size:12px;
+  font-weight:700;
+  transition:.2s;
+}
+
+.btn:hover {
+  background:#3155c5;
+  transform:translateY(-1px);
+}
+
+.btn:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.btn-light {
+  background:#f0f3fa;
+  color:#34415b;
+}
+
+.btn-light:hover {
+  background:#e5eaf4;
+}
+
+/* CARDS */
+
+.card {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:23px;
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+
+.card-title {
+  font-size:14px;
+  font-weight:800;
+  margin:0;
+}
+
+.card-subtitle {
+  color:var(--muted);
+  font-size:11px;
+  margin-top:6px;
+}
+
+.card-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+/* KPI */
+
+.kpi-grid {
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:15px;
+  margin-bottom:22px;
+}
+
+.kpi {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:19px;
+  box-shadow:var(--shadow);
+  min-width:0;
+}
+
+.kpi-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:600;
+  gap:5px;
+}
+
+.kpi-icon {
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  background:var(--blue-light);
+  border-radius:10px;
+  font-size:16px;
+}
+
+.kpi-number {
+  font-size:27px;
+  font-weight:800;
+  margin-top:15px;
+  letter-spacing:-1px;
+}
+
+.kpi-note {
+  color:var(--muted);
+  font-size:10px;
+  margin-top:5px;
+}
+
+/* PROCESS */
+
+.process-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(280px,.85fr);
+  gap:20px;
+  align-items:start;
+}
+
+.upload-box {
+  border:2px dashed #cbd6ed;
+  border-radius:13px;
+  background:#f9faff;
+  padding:35px 20px;
+  text-align:center;
+  transition:.2s;
+}
+
+.upload-box.drag {
+  background:#edf2ff;
+  border-color:var(--blue);
+}
+
+.upload-icon {
+  width:57px;
+  height:57px;
+  border-radius:17px;
+  background:#e8edff;
+  display:grid;
+  place-items:center;
+  font-size:26px;
+  margin:0 auto 15px;
+}
+
+.upload-box h3 {
+  font-size:15px;
+  margin:0 0 8px;
+}
+
+.upload-box p {
+  color:var(--muted);
+  font-size:11px;
+  margin:0 0 19px;
+}
+
+.file-name {
+  color:var(--blue);
+  font-size:12px;
+  font-weight:700;
+  margin-top:12px;
+  word-break:break-word;
+}
+
+.sample-list {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.sample-btn {
+  border:1px solid var(--border);
+  background:white;
+  color:#4d5a72;
+  border-radius:8px;
+  padding:9px 11px;
+  font-size:10px;
+  font-weight:600;
+}
+
+.sample-btn:hover {
+  border-color:var(--blue);
+  color:var(--blue);
+  background:#f7f9ff;
+}
+
+.sample-btn:disabled { opacity:.5; }
+
+.hint {
+  color:var(--muted);
+  font-size:10px;
+  margin-top:12px;
+  line-height:1.6;
+}
+
+/* LIVE PROCESSING */
+
+.live-panel {
+  min-height:220px;
+}
+
+.waiting {
+  color:var(--muted);
+  text-align:center;
+  padding:37px 10px;
+  font-size:12px;
+}
+
+.waiting-icon {
+  font-size:27px;
+  margin-bottom:10px;
+}
+
+.stage {
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:13px 12px;
+  border-bottom:1px solid #f0f2f7;
+  animation:appear .25s ease;
+}
+
+@keyframes appear {
+  from { opacity:0; transform:translateY(5px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.stage:last-child { border-bottom:0; }
+
+.stage-icon {
+  width:25px;
+  height:25px;
+  flex-shrink:0;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  background:#edf2ff;
+  color:var(--blue);
+  font-size:12px;
+  font-weight:800;
+}
+
+.stage.ok .stage-icon {
+  background:#e6f7ef;
+  color:var(--green);
+}
+
+.stage.warn .stage-icon {
+  background:#fff4df;
+  color:var(--amber);
+}
+
+.stage.fail .stage-icon {
+  background:#fff0f1;
+  color:var(--red);
+}
+
+.stage strong {
+  display:block;
+  font-size:11px;
+  margin-bottom:4px;
+}
+
+.stage span {
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.5;
+}
+
+.result-box {
+  padding:17px;
+  border-radius:12px;
+  background:#f7f9fd;
+  margin-top:17px;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.result-box b { display:block; margin-bottom:8px; }
+
+.result-box.APPROVED { background:#eaf8f1; }
+.result-box.REVIEW { background:#fff7e8; }
+.result-box.HOLD { background:#eef1ff; }
+.result-box.REJECTED { background:#fff0f1; }
+
+/* DECISION BADGES */
+
+.badge {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border-radius:30px;
+  padding:5px 10px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.3px;
+  white-space:nowrap;
+}
+
+.APPROVED { background:#e5f7ee; color:#128357; }
+.REVIEW { background:#fff3db; color:#a66c0d; }
+.HOLD { background:#e9edff; color:#485ec0; }
+.REJECTED { background:#ffeaec; color:#c23e4c; }
+
+/* PO UTILISATION */
+
+.po-item {
+  padding:15px 0;
+  border-bottom:1px solid #f0f2f7;
+}
+
+.po-item:last-child { border-bottom:0; }
+
+.po-top {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:11px;
+  margin-bottom:9px;
+}
+
+.po-name { font-weight:700; }
+.po-vendor { color:var(--muted); margin-top:4px; font-size:10px; }
+
+.po-value {
+  color:#46536b;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.bar {
+  height:7px;
+  background:#edf0f6;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.bar-fill {
+  height:100%;
+  background:linear-gradient(90deg,#4169e1,#7191f5);
+  border-radius:20px;
+  transition:width .4s;
+}
+
+/* HISTORY TABLE */
+
+.table-wrap {
+  width:100%;
+  overflow-x:auto;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  min-width:780px;
+}
+
+th {
+  text-align:left;
+  padding:13px 12px;
+  color:#8b96a9;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  background:#fafbfe;
+  border-bottom:1px solid var(--border);
+}
+
+td {
+  padding:14px 12px;
+  border-bottom:1px solid #f0f2f7;
+  font-size:10px;
+  color:#4e5b72;
+}
+
+tr.r { cursor:pointer; }
+tr.r:hover { background:#f8faff; }
+
+.file-cell {
+  font-weight:700;
+  color:#293752;
+}
+
+.reason-row td {
+  background:#fafbfe;
+  color:#65728a;
+  line-height:1.7;
+}
+
+.search-input {
+  border:1px solid var(--border);
+  background:white;
+  border-radius:9px;
+  padding:10px 12px;
+  outline:none;
+  font-size:11px;
+  min-width:190px;
+}
+
+.search-input:focus { border-color:var(--blue); }
+
+.empty {
+  text-align:center;
+  padding:35px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.section-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.small-label {
+  color:var(--muted);
+  font-size:10px;
+}
+
+@media(max-width:1100px) {
+  .kpi-grid { grid-template-columns:repeat(3,1fr); }
+  .process-layout { grid-template-columns:1fr; }
+}
+
+@media(max-width:750px) {
+  .app { display:block; }
+  .sidebar {
+    width:100%;
+    padding:13px 15px;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand { padding:0; }
+  .brand-icon { width:36px;height:36px; }
+  .brand-name { font-size:15px; }
+  .brand-sub,.nav-label,.sidebar-bottom { display:none; }
+  .sidebar nav { display:flex; gap:5px; }
+  .nav-btn {
+    width:auto;
+    padding:10px;
+    margin:0;
+    font-size:11px;
+  }
+  .nav-icon { display:none; }
+  .topbar { height:58px; padding:0 18px; }
+  .content { padding:23px 16px 35px; }
+  .page-heading h1 { font-size:21px; }
+  .kpi-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .kpi { padding:14px; }
+  .kpi-number { font-size:23px; }
+  .section-grid { grid-template-columns:1fr; }
+  .card { padding:17px; }
+  .top-right { gap:8px; }
+}
 </style>
-<header><h1>🧾 Invoice AP Processor</h1><nav><button id=n1 class=on onclick=tab(1)>Process</button><button id=n2 onclick=tab(2)>Dashboard</button></nav></header>
-<main>
-<section id=p1><div class=card><b>Upload an invoice PDF</b><div class=row style=margin-top:10px><input type=file id=f accept=.pdf><button class=btn onclick=runFile()>Run</button></div>
-<p style=margin:14px 0 6px;color:#666>…or run a prepared test invoice:</p><div class=row id=sm></div></div>
-<div class=card><b>Live run</b><div id=stages style=margin-top:8px><span style=color:#888>Waiting for an invoice…</span></div><div id=res style=margin-top:12px></div></div></section>
-<section id=p2 hidden><div class=k id=k></div><div class=card><b>PO utilisation</b><div id=po style=margin-top:8px></div></div>
-<div class=card><div class=row style=justify-content:space-between><b>Run history</b><button class="btn g" onclick=reset()>Reset demo data</button></div><table id=t></table></div></section></main>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🧾</div>
+      <div>
+        <div class="brand-name">InvoiceFlow</div>
+        <div class="brand-sub">INTELLIGENT AP AUTOMATION</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-btn active" id="nav-process" onclick="tab('process')">
+        <span class="nav-icon">↗</span> Process Invoice
+      </button>
+      <button class="nav-btn" id="nav-dashboard" onclick="tab('dashboard')">
+        <span class="nav-icon">▦</span> Dashboard
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="system-status"><span class="dot"></span> System operational</div>
+      InvoiceFlow · AP Processor<br>
+      Automated invoice validation
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <header class="topbar">
+      <div class="top-title" id="top-title">Process Invoice</div>
+      <div class="top-right">
+        <span>AP WORKSPACE</span>
+        <div class="avatar">AP</div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- PROCESS PAGE -->
+
+      <section class="page active" id="page-process">
+
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">INVOICE AUTOMATION</div>
+            <h1>Invoice Processing</h1>
+            <p>Upload an invoice and let the system validate it automatically.</p>
+          </div>
+        </div>
+
+        <div class="process-layout">
+
+          <div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Upload invoice</div>
+                  <div class="card-subtitle">PDF documents only · One invoice at a time</div>
+                </div>
+                <span class="badge APPROVED">● READY</span>
+              </div>
+
+              <div class="upload-box" id="drop-zone">
+                <div class="upload-icon">📄</div>
+                <h3>Drop your invoice here</h3>
+                <p>or browse your computer to select a PDF file</p>
+                <input type="file" id="file-input" accept=".pdf,application/pdf" hidden>
+                <button class="btn" onclick="document.getElementById('file-input').click()">
+                  Choose PDF file
+                </button>
+                <div class="file-name" id="file-name"></div>
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:17px">
+                <button class="btn" id="run-button" onclick="runFile()" disabled>
+                  Process Invoice →
+                </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Demo invoices</div>
+                  <div class="card-subtitle">Try the system with prepared test cases</div>
+                </div>
+                <span class="small-label">10 TEST CASES</span>
+              </div>
+
+              <div class="sample-list" id="sample-list">
+                <span class="small-label">Loading test invoices...</span>
+              </div>
+
+              <div class="hint">
+                These sample invoices demonstrate different validation scenarios,
+                including duplicates, missing fields, PO mismatches and scanned PDFs.
+              </div>
+            </div>
+
+          </div>
+
+          <div>
+
+            <div class="card live-panel">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Live processing</div>
+                  <div class="card-subtitle">Real-time validation pipeline</div>
+                </div>
+                <span class="badge REVIEW">● LIVE</span>
+              </div>
+
+              <div id="stages">
+                <div class="waiting">
+                  <div class="waiting-icon">⚡</div>
+                  <b>Ready to process</b>
+                  <p>Upload an invoice or select a demo invoice to begin.</p>
+                </div>
+              </div>
+
+              <div id="result"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">How it works</div>
+              <div class="card-subtitle" style="margin-bottom:16px">
+                Your invoice moves through these validation checks.
+              </div>
+
+              <div class="stage">
+                <div class="stage-icon">1</div>
+                <div><strong>Document extraction</strong><span>Read invoice information from the PDF.</span></div>
+              </div>
+              <div class="stage">
+                <div class="stage-icon">2</div>
+                <div><strong>Data validation</strong><span>Check required fields and invoice arithmetic.</span></div>
+              </div>
+              <div class="stage">
+                <div class="stage-icon">3</div>
+                <div><strong>Vendor and PO matching</strong><span>Verify vendor, purchase order and amount.</span></div>
+              </div>
+              <div class="stage">
+                <div class="stage-icon">4</div>
+                <div><strong>Final decision</strong><span>Approve, review, hold or reject the invoice.</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD PAGE -->
+
+      <section class="page" id="page-dashboard">
+
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">OVERVIEW & ANALYTICS</div>
+            <h1>Dashboard</h1>
+            <p>Monitor invoice decisions and purchase order utilisation.</p>
+          </div>
+          <button class="btn btn-light" onclick="dash()">↻ Refresh data</button>
+        </div>
+
+        <div class="kpi-grid" id="kpis">
+          <div class="kpi"><div class="kpi-top">Total invoices</div><div class="kpi-number">—</div></div>
+        </div>
+
+        <div class="section-grid">
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Purchase order utilisation</div>
+                <div class="card-subtitle">Billed amount compared to PO amount</div>
+              </div>
+              <span class="badge APPROVED">PO TRACKING</span>
+            </div>
+            <div id="po-list">
+              <div class="empty">Loading purchase orders...</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Decision overview</div>
+            <div class="card-subtitle" style="margin-bottom:20px">
+              Breakdown of invoice processing decisions
+            </div>
+            <div id="decision-summary"></div>
+          </div>
+
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Invoice run history</div>
+              <div class="card-subtitle">Previously processed invoices · Click a row for details</div>
+            </div>
+            <input class="search-input" id="history-search"
+                   placeholder="Search invoices..." oninput="filterHistory()">
+          </div>
+
+          <div class="table-wrap">
+            <table id="history-table">
+              <thead>
+                <tr>
+                  <th>Run ID</th>
+                  <th>Timestamp</th>
+                  <th>Invoice file</th>
+                  <th>Vendor</th>
+                  <th>Invoice no.</th>
+                  <th>Amount</th>
+                  <th>Decision</th>
+                </tr>
+              </thead>
+              <tbody id="history-body">
+                <tr><td colspan="7" class="empty">Loading history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
 <script>
-const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const st=s=>`<div class="st ${s.status}"><b>${E(s.stage)}</b><span>${E(s.detail)}</span></div>`;
-function tab(n){[1,2].forEach(i=>{$('#p'+i).hidden=i!=n;$('#n'+i).className=i==n?'on':''});if(n==2)dash()}
-fetch('/samples').then(r=>r.json()).then(l=>$('#sm').innerHTML=l.map(x=>`<button class="btn g" onclick="runS('${x}')">${x.replace('.pdf','')}</button>`).join(''));
-function runS(x){const fd=new FormData();fd.append('sample',x);go(fd)}
-function runFile(){const f=$('#f').files[0];if(!f)return alert('Choose a PDF');const fd=new FormData();fd.append('file',f);go(fd)}
-async function go(fd){$('#stages').innerHTML='';$('#res').innerHTML='<i>Running…</i>';
-const r=await fetch('/run',{method:'POST',body:fd}),rd=r.body.getReader(),dc=new TextDecoder();let b='';
-while(1){const{done,value}=await rd.read();if(done)break;b+=dc.decode(value,{stream:true});let i;while((i=b.indexOf('\n'))>=0){const l=b.slice(0,i);b=b.slice(i+1);if(!l)continue;const j=JSON.parse(l);
-if(j.done)$('#res').innerHTML=`<span class="bd ${j.decision}">${j.decision}</span> ${E(j.reason)}`;else $('#stages').insertAdjacentHTML('beforeend',st(j))}}}
-async function dash(){const R=await (await fetch('/api/runs')).json(),P=await (await fetch('/api/pos')).json(),c=d=>R.filter(r=>r.decision==d).length;
-$('#k').innerHTML=`<div><b>${R.length}</b>Total</div>`+['APPROVED','REVIEW','HOLD','REJECTED'].map(d=>`<div><b>${c(d)}</b><span class="bd ${d}">${d}</span></div>`).join('');
-$('#po').innerHTML=P.map(p=>`<div style=margin:8px 0>${p.po} · ${E(p.vendor)} — ${(+p.billed).toLocaleString()} / ${(+p.amount).toLocaleString()}<div class=bar><i style="width:${Math.min(100,p.billed/p.amount*100)}%"></i></div></div>`).join('');
-$('#t').innerHTML='<tr><th>#<th>Time<th>File<th>Vendor<th>Invoice<th>Total<th>PO<th>Decision</tr>'+R.map(r=>`<tr class=r onclick="this.nextElementSibling.hidden^=1"><td>${r.id}<td>${r.ts}<td>${E(r.file)}<td>${E(r.vendor)}<td>${E(r.inv_no)}<td>${r.total??''}<td>${E(r.po)}<td><span class="bd ${r.decision}">${r.decision}</span></tr><tr hidden><td colspan=8><i>${E(r.reason)}</i>${JSON.parse(r.stages).map(st).join('')}</tr>`).join('')}
-async function reset(){await fetch('/api/reset',{method:'POST'});dash()}
+const $ = s => document.querySelector(s);
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+
+let historyData = [];
+let busy = false;
+
+function tab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  $('#page-' + name).classList.add('active');
+  $('#nav-' + name).classList.add('active');
+
+  $('#top-title').textContent = name === 'process' ? 'Process Invoice' : 'Dashboard';
+
+  if (name === 'dashboard') dash();
+}
+
+/* LOAD SAMPLE INVOICES */
+
+async function loadSamples() {
+  try {
+    const response = await fetch('/samples');
+    if (!response.ok) throw new Error('Unable to load samples');
+
+    const samples = await response.json();
+    const list = $('#sample-list');
+    list.innerHTML = '';
+
+    samples.forEach(file => {
+      const button = document.createElement('button');
+      button.className = 'sample-btn';
+      button.textContent = file.replace(/\.pdf$/i, '');
+      button.addEventListener('click', () => runSample(file));
+      list.appendChild(button);
+    });
+
+    if (!samples.length) {
+      list.textContent = 'No sample invoices available.';
+    }
+  } catch (error) {
+    $('#sample-list').textContent = 'Could not load sample invoices.';
+  }
+}
+
+/* FILE UPLOAD */
+
+$('#file-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    alert('Please select a PDF file.');
+    this.value = '';
+    return;
+  }
+
+  $('#file-name').textContent = 'Selected: ' + file.name;
+  $('#run-button').disabled = false;
+});
+
+const dropZone = $('#drop-zone');
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('drag');
+});
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('drag');
+});
+
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag');
+
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    alert('Please drop a PDF file.');
+    return;
+  }
+
+  const input = $('#file-input');
+
+  try {
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+  } catch {
+    alert('Please use Choose PDF file to select your invoice.');
+  }
+});
+
+function runFile() {
+  const file = $('#file-input').files[0];
+
+  if (!file) {
+    alert('Please select an invoice PDF first.');
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('file', file);
+  go(fd);
+}
+
+function runSample(file) {
+  const fd = new FormData();
+  fd.append('sample', file);
+  go(fd);
+}
+
+/* PROCESS INVOICE AND READ STREAM */
+
+function stageHTML(s) {
+  const status = ['ok','warn','fail'].includes(s.status) ? s.status : '';
+  const icon = status === 'ok' ? '✓' : status === 'fail' ? '!' : status === 'warn' ? '!' : '•';
+
+  return `
+    <div class="stage ${status}">
+      <div class="stage-icon">${icon}</div>
+      <div>
+        <strong>${escapeHTML(s.stage)}</strong>
+        <span>${escapeHTML(s.detail)}</span>
+      </div>
+    </div>`;
+}
+
+async function go(fd) {
+  if (busy) return;
+  busy = true;
+
+  $('#run-button').disabled = true;
+  document.querySelectorAll('.sample-btn').forEach(b => b.disabled = true);
+
+  $('#stages').innerHTML = '';
+  $('#result').innerHTML = `
+    <div class="result-box">
+      <b>Processing invoice...</b>
+      The validation pipeline is running. Please wait.
+    </div>`;
+
+  try {
+    const response = await fetch('/run', {
+      method:'POST',
+      body:fd
+    });
+
+    if (!response.ok) {
+      throw new Error('Server returned an error: ' + response.status);
+    }
+
+    if (!response.body) {
+      throw new Error('Streaming response is not available.');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    async function processLine(line) {
+      if (!line.trim()) return;
+
+      const item = JSON.parse(line);
+
+      if (item.done) {
+        const decision = ['APPROVED','REVIEW','HOLD','REJECTED'].includes(item.decision)
+          ? item.decision : 'REVIEW';
+
+        $('#result').innerHTML = `
+          <div class="result-box ${decision}">
+            <b>Final decision:
+              <span class="badge ${decision}">${decision}</span>
+            </b>
+            ${escapeHTML(item.reason)}
+          </div>`;
+
+      } else {
+        $('#stages').insertAdjacentHTML('beforeend', stageHTML(item));
+      }
+    }
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, {stream:true});
+
+      let index;
+      while ((index = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, index);
+        buffer = buffer.slice(index + 1);
+        await processLine(line);
+      }
+    }
+
+    buffer += decoder.decode();
+    if (buffer.trim()) await processLine(buffer);
+
+    if (!$('#result').textContent.includes('Final decision')) {
+      $('#result').innerHTML = `
+        <div class="result-box REVIEW">
+          <b>Processing finished</b>
+          No final decision was received. Please check the server logs.
+        </div>`;
+    }
+
+  } catch (error) {
+    $('#result').innerHTML = `
+      <div class="result-box REJECTED">
+        <b>Processing error</b>
+        ${escapeHTML(error.message)}
+      </div>`;
+  } finally {
+    busy = false;
+    $('#run-button').disabled = !$('#file-input').files.length;
+    document.querySelectorAll('.sample-btn').forEach(b => b.disabled = false);
+  }
+}
+
+/* DASHBOARD */
+
+async function dash() {
+  $('#kpis').innerHTML = '<div class="empty">Loading dashboard...</div>';
+
+  try {
+    const [runsResponse, poResponse] = await Promise.all([
+      fetch('/api/runs'),
+      fetch('/api/pos')
+    ]);
+
+    if (!runsResponse.ok || !poResponse.ok) {
+      throw new Error('Unable to load dashboard data.');
+    }
+
+    const runs = await runsResponse.json();
+    const pos = await poResponse.json();
+
+    historyData = runs;
+
+    const count = decision => runs.filter(r => r.decision === decision).length;
+
+    const metrics = [
+      {label:'Total invoices',value:runs.length,icon:'▤',note:'All processed invoices'},
+      {label:'Approved',value:count('APPROVED'),icon:'✓',note:'Successfully validated'},
+      {label:'Needs review',value:count('REVIEW'),icon:'◷',note:'Requires human attention'},
+      {label:'On hold',value:count('HOLD'),icon:'Ⅱ',note:'Missing information'},
+      {label:'Rejected',value:count('REJECTED'),icon:'×',note:'Failed validation'}
+    ];
+
+    $('#kpis').innerHTML = metrics.map(m => `
+      <div class="kpi">
+        <div class="kpi-top">
+          ${m.label}
+          <span class="kpi-icon">${m.icon}</span>
+        </div>
+        <div class="kpi-number">${m.value}</div>
+        <div class="kpi-note">${m.note}</div>
+      </div>
+    `).join('');
+
+    renderPO(pos);
+    renderDecisionSummary(metrics.slice(1));
+    renderHistory(runs);
+
+  } catch (error) {
+    $('#kpis').innerHTML = `
+      <div class="empty">${escapeHTML(error.message)}</div>`;
+  }
+}
+
+/* PO UTILISATION */
+
+function renderPO(pos) {
+  if (!pos.length) {
+    $('#po-list').innerHTML = '<div class="empty">No purchase orders found.</div>';
+    return;
+  }
+
+  $('#po-list').innerHTML = pos.map(p => {
+    const amount = Number(p.amount) || 0;
+    const billed = Number(p.billed) || 0;
+    const percent = amount > 0 ? Math.max(0, Math.min(100, billed / amount * 100)) : 0;
+
+    return `
+      <div class="po-item">
+        <div class="po-top">
+          <div>
+            <div class="po-name">${escapeHTML(p.po)}</div>
+            <div class="po-vendor">${escapeHTML(p.vendor)}</div>
+          </div>
+          <div class="po-value">${percent.toFixed(1)}%</div>
+        </div>
+        <div class="bar">
+          <div class="bar-fill" style="width:${percent}%"></div>
+        </div>
+        <div class="po-vendor" style="margin-top:7px">
+          ${billed.toLocaleString()} / ${amount.toLocaleString()}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* DECISION SUMMARY */
+
+function renderDecisionSummary(metrics) {
+  const total = metrics.reduce((sum,m) => sum + m.value,0);
+
+  $('#decision-summary').innerHTML = metrics.map(m => {
+    const percent = total ? (m.value / total * 100) : 0;
+    const color = {
+      Approved:'#15966a',
+      'Needs review':'#c58a22',
+      'On hold':'#536bd0',
+      Rejected:'#d94d5c'
+    }[m.label];
+
+    return `
+      <div style="margin-bottom:19px">
+        <div class="po-top">
+          <span class="po-name">${m.label}</span>
+          <b>${m.value} <span class="small-label">(${percent.toFixed(1)}%)</span></b>
+        </div>
+        <div class="bar">
+          <div style="height:100%;width:${percent}%;background:${color};border-radius:20px"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* RUN HISTORY */
+
+function renderHistory(runs) {
+  if (!runs.length) {
+    $('#history-body').innerHTML = `
+      <tr><td colspan="7" class="empty">No invoices have been processed yet.</td></tr>`;
+    return;
+  }
+
+  $('#history-body').innerHTML = runs.map((r,index) => {
+    const decision = ['APPROVED','REVIEW','HOLD','REJECTED'].includes(r.decision)
+      ? r.decision : 'REVIEW';
+
+    let stages = [];
+    try {
+      stages = JSON.parse(r.stages || '[]');
+    } catch {}
+
+    return `
+      <tr class="r" onclick="toggleDetails(${index})">
+        <td>#${escapeHTML(r.id)}</td>
+        <td>${escapeHTML(r.ts)}</td>
+        <td class="file-cell">${escapeHTML(r.file)}</td>
+        <td>${escapeHTML(r.vendor)}</td>
+        <td>${escapeHTML(r.inv_no)}</td>
+        <td>${r.total == null ? '—' : Number(r.total).toLocaleString()}</td>
+        <td><span class="badge ${decision}">${decision}</span></td>
+      </tr>
+      <tr class="reason-row" id="detail-${index}" hidden>
+        <td colspan="7">
+          <b>Reason:</b> ${escapeHTML(r.reason)}
+          <div style="margin-top:10px">
+            ${stages.map(s => stageHTML(s)).join('')}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function toggleDetails(index) {
+  const row = $('#detail-' + index);
+  if (row) row.hidden = !row.hidden;
+}
+
+function filterHistory() {
+  const query = $('#history-search').value.toLowerCase();
+
+  const filtered = historyData.filter(r =>
+    [r.file,r.vendor,r.inv_no,r.po,r.decision,r.reason]
+      .some(value => String(value ?? '').toLowerCase().includes(query))
+  );
+
+  renderHistory(filtered);
+}
+
+/* INITIALISE */
+
+loadSamples();
 </script>
+
+</body>
+</html>
