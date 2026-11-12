@@ -3,4 +3,5 @@ flask
 pdfplumber
 reportlab
 pillow
-gunicorn
+psycopg[binary]
+requests
